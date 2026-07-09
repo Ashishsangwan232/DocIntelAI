@@ -56,6 +56,10 @@ class RetrievalError(DocIntelError):
     """Raised when semantic retrieval fails or returns no usable results."""
 
 
+class SummaryGenerationError(DocIntelError):
+    """Raised when AI summary generation fails or returns unparseable output."""
+
+
 class LLMError(DocIntelError):
     """Base class for LLM-related failures."""
 

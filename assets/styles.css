@@ -1,0 +1,312 @@
+/* ==========================================================================
+   DocIntel AI — Custom Theme
+   "Reading desk with sticky annotations": glass index-card panels on a
+   dark navy desk, asymmetric chat bubbles, and a signature circular
+   "ink-dial" match indicator wherever a similarity score appears.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg-primary: #0b1120;
+  --bg-surface: rgba(255, 255, 255, 0.045);
+  --bg-surface-hover: rgba(255, 255, 255, 0.07);
+  --border-subtle: rgba(148, 163, 184, 0.16);
+  --border-strong: rgba(148, 163, 184, 0.28);
+  --accent-ink: #2dd4bf;
+  --accent-ink-dim: rgba(45, 212, 191, 0.16);
+  --accent-flag: #f5b942;
+  --text-primary: #e7ecf3;
+  --text-muted: #8b98ac;
+  --danger: #f87171;
+
+  --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
+  --font-body: 'Inter', 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+  --radius-card: 14px;
+  --radius-control: 10px;
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.35);
+  --transition-fast: 150ms ease;
+  --transition-smooth: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0ms;
+    --transition-smooth: 0ms;
+  }
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* --------------------------------------------------------------------
+   Base surface + typography
+   -------------------------------------------------------------------- */
+[data-testid="stAppViewContainer"] {
+  background:
+    radial-gradient(circle at 15% 0%, rgba(45, 212, 191, 0.06), transparent 40%),
+    radial-gradient(circle at 85% 100%, rgba(245, 185, 66, 0.04), transparent 45%),
+    var(--bg-primary);
+  font-family: var(--font-body);
+  color: var(--text-primary);
+}
+
+[data-testid="stHeader"] {
+  background: transparent;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em;
+}
+
+[data-testid="stCaptionContainer"], .stCaption, small {
+  color: var(--text-muted) !important;
+}
+
+code, .stCodeBlock, [data-testid="stMarkdownContainer"] code {
+  font-family: var(--font-mono) !important;
+}
+
+/* Visible keyboard focus everywhere — accessibility floor */
+*:focus-visible {
+  outline: 2px solid var(--accent-ink) !important;
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-ink);
+}
+
+/* --------------------------------------------------------------------
+   Glass cards — bordered containers, metrics, expanders, forms
+   -------------------------------------------------------------------- */
+[data-testid="stVerticalBlockBorderWrapper"]:has(> div > [data-testid="stVerticalBlock"]) {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-card);
+  transition: border-color var(--transition-smooth), transform var(--transition-smooth);
+}
+
+[data-testid="stMetric"] {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 14px 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+[data-testid="stMetricLabel"] {
+  font-family: var(--font-mono) !important;
+  font-size: 0.78rem !important;
+  color: var(--text-muted) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+[data-testid="stExpander"], [data-testid="stForm"] {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-card) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* --------------------------------------------------------------------
+   Buttons
+   -------------------------------------------------------------------- */
+[data-testid="stButton"] button,
+[data-testid="stDownloadButton"] button,
+[data-testid="stFormSubmitButton"] button {
+  border-radius: var(--radius-control) !important;
+  border: 1px solid var(--border-subtle) !important;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  transition: transform var(--transition-fast), border-color var(--transition-fast),
+    background var(--transition-fast);
+  font-weight: 500;
+}
+
+[data-testid="stButton"] button:hover,
+[data-testid="stDownloadButton"] button:hover,
+[data-testid="stFormSubmitButton"] button:hover {
+  border-color: var(--accent-ink) !important;
+  background: var(--accent-ink-dim) !important;
+  transform: translateY(-1px);
+}
+
+[data-testid="stButton"] button:active,
+[data-testid="stFormSubmitButton"] button:active {
+  transform: translateY(0px);
+}
+
+[data-testid="baseButton-primary"], button[kind="primary"] {
+  background: var(--accent-ink) !important;
+  border-color: var(--accent-ink) !important;
+  color: #06181a !important;
+  font-weight: 600;
+}
+
+[data-testid="baseButton-primary"]:hover, button[kind="primary"]:hover {
+  filter: brightness(1.08);
+}
+
+/* --------------------------------------------------------------------
+   Inputs — text, select, multiselect, slider
+   -------------------------------------------------------------------- */
+[data-testid="stTextInput"] input,
+[data-testid="stTextArea"] textarea,
+[data-baseweb="select"] > div,
+[data-testid="stChatInput"] textarea {
+  border-radius: var(--radius-control) !important;
+  background: var(--bg-surface) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-primary) !important;
+  transition: border-color var(--transition-fast);
+}
+
+[data-testid="stTextInput"] input:focus,
+[data-testid="stTextArea"] textarea:focus,
+[data-testid="stChatInput"] textarea:focus {
+  border-color: var(--accent-ink) !important;
+}
+
+[data-testid="stSlider"] [role="slider"] {
+  background: var(--accent-ink) !important;
+}
+
+[data-testid="stSlider"] div[data-baseweb="slider"] > div > div {
+  background: var(--accent-ink) !important;
+}
+
+/* --------------------------------------------------------------------
+   Tabs — pill-style active indicator
+   -------------------------------------------------------------------- */
+[data-testid="stTabs"] [data-baseweb="tab-list"] {
+  gap: 4px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+[data-testid="stTabs"] [data-baseweb="tab"] {
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--text-muted);
+  border-radius: var(--radius-control) var(--radius-control) 0 0;
+  transition: color var(--transition-fast);
+}
+
+[data-testid="stTabs"] [aria-selected="true"] {
+  color: var(--accent-ink) !important;
+}
+
+[data-testid="stTabs"] [data-baseweb="tab-highlight"] {
+  background-color: var(--accent-ink) !important;
+  height: 2px !important;
+}
+
+/* --------------------------------------------------------------------
+   Chat — asymmetric bubbles, assistant gets a highlight rule
+   -------------------------------------------------------------------- */
+[data-testid="stChatMessage"] {
+  border-radius: var(--radius-card);
+  padding: 4px 2px;
+  animation: fade-in-up var(--transition-smooth);
+}
+
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) {
+  border-left: 2px solid var(--accent-ink);
+  padding-left: 12px;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --------------------------------------------------------------------
+   Alerts / status
+   -------------------------------------------------------------------- */
+[data-testid="stAlert"] {
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-subtle);
+  backdrop-filter: blur(8px);
+}
+
+/* --------------------------------------------------------------------
+   Signature element: the match-dial
+   A conic-gradient ring showing similarity score at a glance, paired
+   with the existing text label (never color/visual-only). Injected
+   inline by src/ui/theme.py's render_match_dial() wherever a citation
+   or search result shows a similarity score.
+   -------------------------------------------------------------------- */
+.match-dial-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.match-dial {
+  --pct: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: conic-gradient(var(--accent-ink) calc(var(--pct) * 1%), var(--border-subtle) 0);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-smooth);
+}
+
+.match-dial::after {
+  content: '';
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bg-primary);
+}
+
+/* --------------------------------------------------------------------
+   Responsive adjustments
+   -------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  [data-testid="stMetric"] {
+    padding: 10px 12px;
+  }
+  .match-dial {
+    width: 22px;
+    height: 22px;
+  }
+  .match-dial::after {
+    width: 14px;
+    height: 14px;
+  }
+}

@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 # Characters considered unsafe in filenames across common filesystems.
 _UNSAFE_FILENAME_CHARS = re.compile(r"[^A-Za-z0-9_.-]")
 _MULTIPLE_UNDERSCORES = re.compile(r"_{2,}")
+_UNDERSCORE_BEFORE_DOT = re.compile(r"_+\.")
 
 
 def sanitize_filename(filename: str) -> str:
@@ -31,6 +32,7 @@ def sanitize_filename(filename: str) -> str:
     name = filename.strip().replace(" ", "_")
     name = _UNSAFE_FILENAME_CHARS.sub("_", name)
     name = _MULTIPLE_UNDERSCORES.sub("_", name)
+    name = _UNDERSCORE_BEFORE_DOT.sub(".", name)
     name = name.strip("._") or "unnamed_file"
     return name
 

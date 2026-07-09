@@ -303,10 +303,56 @@ class SQLiteManager:
             ).fetchall()
         return [_row_to_chunk(r) for r in rows]
 
+    def count_chunks_for_document(self, document_id: str) -> int:
+        """Lightweight count query — avoids loading full chunk content just to count."""
+        with self._connection() as conn:
+            row = conn.execute(
+                "SELECT COUNT(*) AS c FROM chunks WHERE document_id = ?", (document_id,)
+            ).fetchone()
+        return int(row["c"])
+
     def count_chunks(self) -> int:
         with self._connection() as conn:
             row = conn.execute("SELECT COUNT(*) AS c FROM chunks").fetchone()
         return int(row["c"])
+
+    def get_average_response_time_ms(self) -> float | None:
+        """Average assistant response time across all chat messages, or None if no data yet."""
+        with self._connection() as conn:
+            row = conn.execute(
+                """SELECT AVG(response_time_ms) AS avg_ms FROM chat_messages
+                   WHERE role = 'assistant' AND response_time_ms IS NOT NULL"""
+            ).fetchone()
+        return float(row["avg_ms"]) if row["avg_ms"] is not None else None
+
+    def get_total_storage_bytes(self) -> int:
+        """Total size of all uploaded document files, in bytes."""
+        with self._connection() as conn:
+            row = conn.execute("SELECT COALESCE(SUM(file_size_bytes), 0) AS total FROM documents").fetchone()
+        return int(row["total"])
+
+    def count_chat_sessions(self) -> int:
+        with self._connection() as conn:
+            row = conn.execute("SELECT COUNT(*) AS c FROM chat_sessions").fetchone()
+        return int(row["c"])
+
+    def count_total_queries(self) -> int:
+        with self._connection() as conn:
+            row = conn.execute("SELECT COUNT(*) AS c FROM query_logs").fetchone()
+        return int(row["c"])
+
+    def get_documents_uploaded_per_day(self, days: int = 14) -> list[tuple[str, int]]:
+        """Return (date, count) pairs for documents uploaded in the last N days, oldest first."""
+        with self._connection() as conn:
+            rows = conn.execute(
+                """SELECT DATE(uploaded_at) AS day, COUNT(*) AS c
+                   FROM documents
+                   WHERE uploaded_at >= DATE('now', ?)
+                   GROUP BY day
+                   ORDER BY day ASC""",
+                (f"-{days} days",),
+            ).fetchall()
+        return [(r["day"], r["c"]) for r in rows]
 
     def delete_chunks_for_document(self, document_id: str) -> None:
         with self._connection() as conn:
@@ -331,6 +377,15 @@ class SQLiteManager:
                 "SELECT * FROM chat_sessions ORDER BY created_at DESC"
             ).fetchall()
         return [_row_to_chat_session(r) for r in rows]
+
+    def get_chat_session(self, session_id: str) -> ChatSession:
+        with self._connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM chat_sessions WHERE id = ?", (session_id,)
+            ).fetchone()
+        if row is None:
+            raise RecordNotFoundError(f"Chat session {session_id} not found")
+        return _row_to_chat_session(row)
 
     def add_chat_message(self, message: ChatMessage) -> ChatMessage:
         citations_json = json.dumps(
@@ -369,6 +424,23 @@ class SQLiteManager:
                 (session_id,),
             ).fetchall()
         return [_row_to_chat_message(r) for r in rows]
+
+    def delete_chat_message(self, message_id: str) -> None:
+        """Delete a single chat message (used by the 'regenerate' feature)."""
+        with self._connection() as conn:
+            conn.execute("DELETE FROM chat_messages WHERE id = ?", (message_id,))
+
+    def clear_session_messages(self, session_id: str) -> None:
+        """Delete every message in a session but keep the session itself."""
+        with self._connection() as conn:
+            conn.execute("DELETE FROM chat_messages WHERE session_id = ?", (session_id,))
+        logger.info("Cleared all messages for chat session %s", session_id)
+
+    def delete_chat_session(self, session_id: str) -> None:
+        """Delete a chat session and cascade-delete all its messages."""
+        with self._connection() as conn:
+            conn.execute("DELETE FROM chat_sessions WHERE id = ?", (session_id,))
+        logger.info("Deleted chat session %s", session_id)
 
     # ------------------------------------------------------------------
     # Query logs (analytics)

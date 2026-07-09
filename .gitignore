@@ -1,0 +1,35 @@
+# --- Environment & secrets ---
+.env
+*.env.local
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Runtime data (never committed, recreated by config.py at startup) ---
+uploads/*
+!uploads/.gitkeep
+database/*
+!database/.gitkeep
+vectorstore/*
+!vectorstore/.gitkeep
+logs/*
+!logs/.gitkeep
+
+# --- OS / editor ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# --- Streamlit ---
+.streamlit/secrets.toml
