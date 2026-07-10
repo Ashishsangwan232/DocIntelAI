@@ -50,7 +50,12 @@ def _render_scope_selector(document_service: DocumentService | None) -> None:
     if document_service is None:
         return
 
-    ready_documents = document_service.list_documents(status=DocumentStatus.READY)
+    try:
+        ready_documents = document_service.list_documents(status=DocumentStatus.READY)
+    except DocIntelError as exc:
+        st.error(f"Couldn't load document list: {exc}")
+        return
+
     if not ready_documents:
         st.info("No processed documents yet — upload one to start searching.")
         return

@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: docintel-ai
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: LLM_MODEL
+        value: gpt-oss:120b
+      - key: OLLAMA_CLOUD_API_KEY
+        sync: false # set manually in the Render dashboard — never committed

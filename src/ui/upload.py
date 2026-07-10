@@ -193,7 +193,12 @@ def _render_library_section(
 ) -> None:
     st.subheader("Document Library")
 
-    documents = document_service.list_documents()
+    try:
+        documents = document_service.list_documents()
+    except DocIntelError as exc:
+        st.error(f"Couldn't load the document library: {exc}")
+        return
+
     if not documents:
         st.info("No documents uploaded yet. Upload a file above to get started.")
         return
@@ -300,8 +305,11 @@ def _confirm_delete_dialog(document: Document, document_service: DocumentService
             st.session_state[_STATE_PENDING_DELETE_ID] = None
     with col_delete:
         if st.button("Delete", type="primary", use_container_width=True, key=f"delete_confirm_{document.id}"):
-            document_service.delete_document(document.id)
-            st.session_state[_STATE_PENDING_DELETE_ID] = None
+            try:
+                document_service.delete_document(document.id)
+                st.session_state[_STATE_PENDING_DELETE_ID] = None
+            except DocIntelError as exc:
+                st.error(f"Couldn't delete '{document.filename}': {exc}")
 
 
 def _maybe_render_delete_dialog(document_service: DocumentService) -> None:
@@ -341,7 +349,10 @@ def _maybe_render_preview_dialog(document_service: DocumentService) -> None:
 @st.dialog("Document preview", width="large")
 def _preview_dialog(document: Document, document_service: DocumentService) -> None:
     st.markdown(f"**{document.filename}**")
-    preview_text = document_service.get_preview_text(document.id, max_chars=2000)
+    try:
+        preview_text = document_service.get_preview_text(document.id, max_chars=2000)
+    except DocIntelError as exc:
+        preview_text = f"(Preview unavailable: {exc})"
     st.text_area(
         "Preview", value=preview_text, height=300, disabled=True,
         label_visibility="collapsed", key=f"preview_text_{document.id}",

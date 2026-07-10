@@ -146,10 +146,10 @@ class LLMSettings:
 
     provider: str = field(default_factory=lambda: _env_str("LLM_PROVIDER", "ollama_cloud"))
     api_base_url: str = field(
-        default_factory=lambda: _env_str("OLLAMA_CLOUD_BASE_URL", "https://ollama.com")
+        default_factory=lambda: _env_str("OLLAMA_CLOUD_BASE_URL", "https://ollama.com/api")
     )
     api_key: str = field(default_factory=lambda: _env_str("OLLAMA_CLOUD_API_KEY", ""))
-    model_name: str = field(default_factory=lambda: _env_str("LLM_MODEL", "gpt-oss:120b-cloud"))
+    model_name: str = field(default_factory=lambda: _env_str("LLM_MODEL", "gpt-oss:120b"))
     temperature: float = field(default_factory=lambda: _env_float("LLM_TEMPERATURE", 0.3))
     max_tokens: int = field(default_factory=lambda: _env_int("LLM_MAX_TOKENS", 1024))
     request_timeout_seconds: int = field(

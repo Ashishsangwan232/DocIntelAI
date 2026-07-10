@@ -51,10 +51,13 @@ def render(
             current conversation as PDF/Markdown/plain text. If
             omitted, the Export controls are simply not shown.
     """
-    _ensure_active_session(chat_service)
-
-    session_id = st.session_state[_STATE_SESSION_ID]
-    messages = chat_service.get_messages(session_id)
+    try:
+        _ensure_active_session(chat_service)
+        session_id = st.session_state[_STATE_SESSION_ID]
+        messages = chat_service.get_messages(session_id)
+    except DocIntelError as exc:
+        st.error(f"Couldn't load this conversation: {exc}")
+        return
 
     _render_toolbar(chat_service, document_service, export_service, session_id, messages)
 
@@ -97,15 +100,21 @@ def _render_toolbar(
 
     with col_new:
         if st.button("New Chat", use_container_width=True):
-            new_session = chat_service.create_session()
-            st.session_state[_STATE_SESSION_ID] = new_session.id
-            st.session_state[_STATE_DOCUMENT_SCOPE] = []
-            st.rerun()
+            try:
+                new_session = chat_service.create_session()
+                st.session_state[_STATE_SESSION_ID] = new_session.id
+                st.session_state[_STATE_DOCUMENT_SCOPE] = []
+                st.rerun()
+            except DocIntelError as exc:
+                st.error(f"Couldn't start a new chat: {exc}")
 
     with col_clear:
         if st.button("Clear Conversation", use_container_width=True):
-            chat_service.clear_conversation(st.session_state[_STATE_SESSION_ID])
-            st.rerun()
+            try:
+                chat_service.clear_conversation(st.session_state[_STATE_SESSION_ID])
+                st.rerun()
+            except DocIntelError as exc:
+                st.error(f"Couldn't clear the conversation: {exc}")
 
     if show_export:
         with col_export:
@@ -118,24 +127,31 @@ def _render_toolbar(
 
 def _render_export_menu(export_service: ExportService, session_id: str, messages: list[ChatMessage]) -> None:
     with st.popover("📤 Export", use_container_width=True):
-        session = _get_session_for_export(export_service, session_id)
+        try:
+            session = _get_session_for_export(export_service, session_id)
+            pdf_bytes = export_service.export_to_pdf(session_id)
+            markdown_text = export_service.export_to_markdown(session_id)
+            plain_text = export_service.export_to_text(session_id)
+        except DocIntelError as exc:
+            st.error(f"Couldn't prepare export: {exc}")
+            return
 
         st.download_button(
             "Download as PDF",
-            data=export_service.export_to_pdf(session_id),
+            data=pdf_bytes,
             file_name=f"{_safe_export_filename(session.title)}.pdf",
             mime="application/pdf",
             use_container_width=True,
         )
         st.download_button(
             "Download as Markdown",
-            data=export_service.export_to_markdown(session_id),
+            data=markdown_text,
             file_name=f"{_safe_export_filename(session.title)}.md",
             mime="text/markdown",
             use_container_width=True,
         )
         st.caption("Copy conversation:")
-        st.code(export_service.export_to_text(session_id), language=None)
+        st.code(plain_text, language=None)
 
 
 def _get_session_for_export(export_service: ExportService, session_id: str):
@@ -152,7 +168,12 @@ def _safe_export_filename(title: str) -> str:
 
 
 def _render_document_scope_selector(document_service: DocumentService) -> None:
-    ready_documents = document_service.list_documents(status=DocumentStatus.READY)
+    try:
+        ready_documents = document_service.list_documents(status=DocumentStatus.READY)
+    except DocIntelError as exc:
+        st.caption(f"Couldn't load document list: {exc}")
+        return
+
     if not ready_documents:
         st.caption("No processed documents yet — upload one to chat with it.")
         st.session_state[_STATE_DOCUMENT_SCOPE] = []

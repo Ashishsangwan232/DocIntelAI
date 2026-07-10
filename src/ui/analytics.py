@@ -18,7 +18,7 @@ import streamlit as st
 
 from src.services.analytics_service import AnalyticsService
 from src.services.settings_service import RuntimeSettingsService
-from src.utils.exceptions import ValidationError
+from src.utils.exceptions import DocIntelError, ValidationError
 
 
 def render(analytics_service: AnalyticsService, settings_service: RuntimeSettingsService) -> None:
@@ -38,7 +38,11 @@ def render(analytics_service: AnalyticsService, settings_service: RuntimeSetting
 def _render_analytics(analytics_service: AnalyticsService) -> None:
     st.subheader("Usage Analytics")
 
-    summary = analytics_service.get_summary()
+    try:
+        summary = analytics_service.get_summary()
+    except DocIntelError as exc:
+        st.error(f"Couldn't load analytics: {exc}")
+        return
 
     row1 = st.columns(4)
     row1[0].metric("Total Documents", summary.total_documents)
@@ -87,7 +91,11 @@ def _render_settings(settings_service: RuntimeSettingsService) -> None:
         "after saving — already-processed documents are unaffected."
     )
 
-    current = settings_service.get_preferences()
+    try:
+        current = settings_service.get_preferences()
+    except DocIntelError as exc:
+        st.error(f"Couldn't load current settings: {exc}")
+        return
 
     with st.form("settings_form"):
         st.markdown("**Document Chunking**")
@@ -132,6 +140,9 @@ def _render_settings(settings_service: RuntimeSettingsService) -> None:
             st.error(f"Couldn't save settings: {exc}")
 
     if reset_clicked:
-        settings_service.reset_to_defaults()
-        st.success("Settings reset to defaults.")
-        st.rerun()
+        try:
+            settings_service.reset_to_defaults()
+            st.success("Settings reset to defaults.")
+            st.rerun()
+        except DocIntelError as exc:
+            st.error(f"Couldn't reset settings: {exc}")
