@@ -6,8 +6,8 @@ Centralized application configuration for DocIntel AI.
 Every module in the codebase reads settings through the single
 `settings` instance exported from this file. Nothing outside this
 file is allowed to call `os.getenv` directly — this keeps
-configuration auditable and makes the Streamlit -> FastAPI migration
-a one-file change instead of a search-and-replace across the repo.
+configuration auditable and centralized in one place instead of a
+search-and-replace across the repo.
 
 Configuration values are loaded from environment variables, which in
 local development are populated from a `.env` file via python-dotenv.
@@ -146,10 +146,10 @@ class LLMSettings:
 
     provider: str = field(default_factory=lambda: _env_str("LLM_PROVIDER", "ollama_cloud"))
     api_base_url: str = field(
-        default_factory=lambda: _env_str("OLLAMA_CLOUD_BASE_URL", "https://ollama.com/api")
+        default_factory=lambda: _env_str("OLLAMA_CLOUD_BASE_URL", "https://ollama.com")
     )
     api_key: str = field(default_factory=lambda: _env_str("OLLAMA_CLOUD_API_KEY", ""))
-    model_name: str = field(default_factory=lambda: _env_str("LLM_MODEL", "gpt-oss:120b"))
+    model_name: str = field(default_factory=lambda: _env_str("LLM_MODEL", "gpt-oss:120b-cloud"))
     temperature: float = field(default_factory=lambda: _env_float("LLM_TEMPERATURE", 0.3))
     max_tokens: int = field(default_factory=lambda: _env_int("LLM_MAX_TOKENS", 1024))
     request_timeout_seconds: int = field(
@@ -185,6 +185,29 @@ class UploadSettings:
 
 
 @dataclass(frozen=True)
+class ApiSettings:
+    """
+    FastAPI backend configuration.
+
+    Read only by `api/main.py`. Kept here
+    rather than in a separate config module so there is still exactly
+    one place that reads `os.getenv` in the whole project.
+    """
+
+    host: str = field(default_factory=lambda: _env_str("API_HOST", "0.0.0.0"))
+    port: int = field(default_factory=lambda: _env_int("API_PORT", 8000))
+    # Dev-only: Vite's default port plus the common alternates. In
+    # production, FastAPI serves the built React app itself (same
+    # origin), so CORS is not exercised there at all.
+    cors_origins: list[str] = field(
+        default_factory=lambda: _env_list(
+            "API_CORS_ORIGINS",
+            ["http://localhost:5173", "http://127.0.0.1:5173"],
+        )
+    )
+
+
+@dataclass(frozen=True)
 class AppSettings:
     """Top-level application metadata and feature flags."""
 
@@ -206,6 +229,7 @@ class Settings:
     llm: LLMSettings = field(default_factory=LLMSettings)
     rag: RAGSettings = field(default_factory=RAGSettings)
     upload: UploadSettings = field(default_factory=UploadSettings)
+    api: ApiSettings = field(default_factory=ApiSettings)
 
     def validate(self) -> list[str]:
         """

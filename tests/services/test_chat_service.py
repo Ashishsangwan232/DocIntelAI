@@ -98,6 +98,18 @@ class TestSessionManagement:
         chat_service.delete_session(session.id)
         assert chat_service.list_sessions() == []
 
+    def test_get_session_returns_existing_session(self, chat_service: ChatService) -> None:
+        created = chat_service.create_session(title="Fetch Me")
+        fetched = chat_service.get_session(created.id)
+        assert fetched.id == created.id
+        assert fetched.title == "Fetch Me"
+
+    def test_get_session_raises_for_unknown_id(self, chat_service: ChatService) -> None:
+        from src.utils.exceptions import RecordNotFoundError
+
+        with pytest.raises(RecordNotFoundError):
+            chat_service.get_session("does-not-exist")
+
 
 class TestSendMessage:
     def test_persists_user_and_assistant_messages(self, chat_service: ChatService) -> None:

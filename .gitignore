@@ -28,8 +28,10 @@ logs/*
 # --- OS / editor ---
 .DS_Store
 .idea/
+
+# --- Frontend (frontend/ has its own .gitignore too) ---
+frontend/node_modules/
+frontend/dist/
 .vscode/
 *.swp
 
-# --- Streamlit ---
-.streamlit/secrets.toml

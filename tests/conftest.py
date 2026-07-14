@@ -11,15 +11,13 @@ test suite fast (seconds, not minutes) while still exercising every
 real line of `EmbeddingService`, `ChromaManager`, and
 `DocumentService` orchestration logic.
 
-`FakeHTTPSession`/`FakeHTTPResponse` play the same role for
-`OllamaCloudLLM` — they satisfy the exact `HTTPSession`/`HTTPResponse`
-structural types the LLM client depends on, with zero real network
-calls to Ollama Cloud.
+`FakeOllamaChatClient` plays the same role for `OllamaCloudLLM` — it
+satisfies the exact `ChatClient` structural type the LLM class depends
+on, with zero real network calls to Ollama Cloud.
 """
 
 from __future__ import annotations
 
-import json
 from typing import Any, Iterable
 
 import numpy as np
@@ -68,64 +66,55 @@ def fake_embedding_model() -> FakeEmbeddingModel:
     return FakeEmbeddingModel(dimension=16)
 
 
-class FakeHTTPResponse:
-    """Fake stand-in for a `requests.Response` used by `OllamaCloudLLM`."""
+class FakeOllamaResponseError(Exception):
+    """Stand-in for `ollama.ResponseError` — carries a real status code."""
 
-    def __init__(
-        self,
-        status_code: int = 200,
-        json_data: dict[str, Any] | None = None,
-        lines: Iterable[bytes] | None = None,
-        text: str = "",
-    ) -> None:
+    def __init__(self, message: str, status_code: int) -> None:
+        super().__init__(message)
+        self.error = message
         self.status_code = status_code
-        self._json_data = json_data
-        self._lines = list(lines) if lines is not None else []
-        self.text = text
-
-    def json(self) -> dict[str, Any]:
-        return self._json_data
-
-    def iter_lines(self):
-        return iter(self._lines)
 
 
-class FakeHTTPSession:
+class FakeOllamaChatClient:
     """
-    Fake stand-in for `requests.Session` used by `OllamaCloudLLM`.
+    Fake stand-in for `ollama.Client` used by `OllamaCloudLLM`.
 
     Records the last call's arguments (`last_call`) so tests can assert
-    on exactly what payload/headers/URL were sent, and can be
-    configured with either a fixed response or an exception to raise.
+    on exactly what model/messages/options were sent, and can be
+    configured with either a fixed response (dict, for non-streaming)
+    or a list of chunk dicts (for streaming) or an exception to raise.
     """
 
     def __init__(
         self,
-        response: FakeHTTPResponse | None = None,
+        response: dict[str, Any] | None = None,
+        stream_chunks: Iterable[dict[str, Any]] | None = None,
         raise_exception: Exception | None = None,
     ) -> None:
         self.response = response
+        self._stream_chunks = list(stream_chunks) if stream_chunks is not None else []
         self.raise_exception = raise_exception
         self.last_call: dict[str, Any] | None = None
         self.call_count = 0
 
-    def post(self, url: str, *, headers: dict, json: dict, timeout: int, stream: bool = False):
+    def chat(
+        self, *, model: str, messages: list[dict[str, str]], options: dict[str, Any], stream: bool = False
+    ):
         self.call_count += 1
-        self.last_call = {
-            "url": url, "headers": headers, "json": json,
-            "timeout": timeout, "stream": stream,
-        }
+        self.last_call = {"model": model, "messages": messages, "options": options, "stream": stream}
         if self.raise_exception is not None:
             raise self.raise_exception
+        if stream:
+            return iter(self._stream_chunks)
         return self.response
 
 
-def make_stream_lines(*chunks: str, final_done: bool = True) -> list[bytes]:
-    """Helper to build Ollama-style newline-delimited JSON stream chunks."""
-    lines = [
-        json.dumps({"response": chunk, "done": False}).encode() for chunk in chunks
+def make_stream_chunks(*chunks: str, final_done: bool = True) -> list[dict[str, Any]]:
+    """Helper to build Ollama-chat-style streaming response chunks."""
+    parts: list[dict[str, Any]] = [
+        {"message": {"role": "assistant", "content": chunk}, "done": False} for chunk in chunks
     ]
     if final_done:
-        lines.append(json.dumps({"response": "", "done": True}).encode())
-    return lines
+        parts.append({"message": {"role": "assistant", "content": ""}, "done": True})
+    return parts
 

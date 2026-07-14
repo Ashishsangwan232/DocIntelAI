@@ -25,7 +25,7 @@ class TestGetPreferences:
         assert prefs.top_k == 5
         assert prefs.temperature == 0.3
         assert prefs.max_tokens == 1024
-        assert prefs.model == "gpt-oss:120b"
+        assert prefs.model == "gpt-oss:120b-cloud"
 
 
 class TestUpdatePreferences:
@@ -47,8 +47,8 @@ class TestUpdatePreferences:
         assert new_service.get_preferences().top_k == 12
 
     def test_updates_model(self, service: RuntimeSettingsService) -> None:
-        updated = service.update_preferences(model="gpt-oss:120b")
-        assert updated.model == "gpt-oss:120b"
+        updated = service.update_preferences(model="gpt-oss:120b-cloud")
+        assert updated.model == "gpt-oss:120b-cloud"
 
 
 class TestValidation:
@@ -108,9 +108,25 @@ class TestResetToDefaults:
         assert prefs.top_k == 5
         assert prefs.temperature == 0.3
 
+    def test_reset_restores_default_model_not_empty_string(self, service: RuntimeSettingsService) -> None:
+        """
+        Regression test: reset_to_defaults() writes an empty-string
+        sentinel for every key including "model" (rather than deleting
+        rows), and get_preferences() must treat that sentinel as
+        "unset" for the model field exactly like it already does for
+        the numeric fields — otherwise a reset leaves the model as ""
+        instead of falling back to the configured default.
+        """
+        from config import settings as app_settings
+
+        service.reset_to_defaults()
+        prefs = service.get_preferences()
+        assert prefs.model == app_settings.llm.model_name
+        assert prefs.model != ""
+
 
 class TestAvailableModels:
     def test_returns_non_empty_list(self) -> None:
         models = RuntimeSettingsService.available_models()
         assert len(models) >= 1
-        assert "gpt-oss:120b" in models
+        assert "gpt-oss:120b-cloud" in models

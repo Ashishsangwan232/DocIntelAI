@@ -1,15 +1,10 @@
 # Deploying DocIntel AI to Render
 
-This guide covers two deployment paths:
-
-- **Quick / demo deployment** — no persistent disk, free-tier friendly. Uploaded documents and chat history are lost on redeploy or restart. Good for a portfolio demo link.
-- **Production deployment** — adds a Render Persistent Disk so SQLite, ChromaDB, and uploaded files survive restarts.
-
-Both use the same codebase — the only difference is one Render setting.
+This guide covers the app's one deployable stack: **FastAPI + React** — one Render service serves both the REST/SSE API (`api/`) and the built frontend (`frontend/`) from a single process and origin, defined by `render.yaml`'s `docintel-ai-web` service.
 
 ---
 
-## 1. Prerequisites
+## 0. Prerequisites
 
 - A [Render](https://render.com) account
 - This repository pushed to GitHub (or GitLab/Bitbucket)
@@ -17,7 +12,9 @@ Both use the same codebase — the only difference is one Render setting.
 
 ---
 
-## 2. Quick Deployment (No Persistent Disk)
+## 1. FastAPI + React (one service)
+
+### Quick deployment
 
 1. **Push this repository to GitHub.**
 
@@ -28,30 +25,47 @@ Both use the same codebase — the only difference is one Render setting.
    | Setting | Value |
    |---|---|
    | Runtime | Python 3 |
-   | Build Command | `pip install -r requirements.txt` |
-   | Start Command | `streamlit run app.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true` |
+   | Build Command | `pip install -r requirements.txt && cd frontend && npm install && npm run build && cd ..` |
+   | Start Command | `uvicorn api.main:app --host 0.0.0.0 --port $PORT` |
    | Instance Type | Free (or Starter for better performance) |
 
-4. **Set environment variables** (Render dashboard → Environment tab). At minimum:
+4. **Set environment variables** (Render dashboard → Environment tab):
 
    ```
    OLLAMA_CLOUD_API_KEY=your_real_key_here
-   LLM_MODEL=gpt-oss:120b
+   OLLAMA_CLOUD_BASE_URL=https://ollama.com
+   LLM_MODEL=gpt-oss:120b-cloud
    APP_ENV=production
    DEBUG=false
    ```
 
    All other variables in `.env.example` have sensible defaults baked into `config.py` and don't need to be set unless you want to override them.
 
-5. **Deploy.** Render will build and start the app. First load will be slower (downloads the `BAAI/bge-base-en-v1.5` embedding model, ~430MB, on first use).
+5. **Deploy.** The build step installs Python deps, then builds the React frontend into `frontend/dist/`, which `api/static.py` serves directly — there's no separate frontend hosting step, and no CORS configuration needed in production since the browser only ever talks to this one origin. First load will be slower (downloads the `BAAI/bge-base-en-v1.5` embedding model, ~430MB, on first use).
 
-**Important limitation:** Render's default filesystem is ephemeral — every redeploy or restart wipes `uploads/`, `database/`, and `vectorstore/`. Uploaded documents and chat history will not persist. This is fine for a live demo link where you upload a sample document each session, but not for real usage.
+6. **Verify:** visit the deployed URL — you should see the React app. Visiting `<url>/docs` shows the interactive API documentation, and `<url>/api/v1/health` should return `{"status": "ok", ...}`.
+
+**Important limitation:** Render's default filesystem is ephemeral — every redeploy or restart wipes `uploads/`, `database/`, and `vectorstore/`. Uploaded documents and chat history will not persist. This is fine for a live demo link where you upload a sample document each session, but not for real usage — see section 2 below for the persistent-disk setup.
+
+### Local development
+
+You need two processes running together — see `frontend/README.md` for the full walkthrough:
+
+```bash
+# Terminal 1
+uvicorn api.main:app --reload --port 8000
+
+# Terminal 2
+cd frontend && npm install && npm run dev
+```
+
+Vite's dev server (`http://localhost:5173`) proxies `/api/*` to the FastAPI process, so there's no CORS involved locally either.
 
 ---
 
-## 3. Production Deployment (Persistent Disk)
+## 2. Production Deployment (Persistent Disk)
 
-Same as above, plus:
+In addition to the quick-deployment steps above:
 
 1. In the Render service settings, go to **Disks** and click **Add Disk**.
 
@@ -84,28 +98,15 @@ Same as above, plus:
 
 ---
 
-## 4. Using render.yaml (Infrastructure as Code)
+## 3. Using render.yaml (Infrastructure as Code)
 
-This repo includes a `render.yaml` at the project root. In Render, choose **New → Blueprint**, point it at this repository, and Render will provision the service from that file automatically — you'll still need to set `OLLAMA_CLOUD_API_KEY` manually in the dashboard (secrets are never committed to `render.yaml`).
-
----
-
-## 5. Docker Deployment (Alternative)
-
-A `docker/Dockerfile` is included if you'd rather deploy as a container (Render, Fly.io, Railway, or any container host all work identically):
-
-```bash
-docker build -f docker/Dockerfile -t docintel-ai .
-docker run -p 8501:8501 --env-file .env docintel-ai
-```
-
-On Render specifically: choose **New → Web Service**, select **Docker** as the runtime, and point it at `docker/Dockerfile`. Mount a persistent disk the same way as the non-Docker path above if you need data to survive restarts.
+This repo includes a `render.yaml` at the project root defining the `docintel-ai-web` service. In Render, choose **New → Blueprint**, point it at this repository, and Render will provision it from that file automatically. You'll still need to set `OLLAMA_CLOUD_API_KEY` manually in the dashboard (secrets are never committed to `render.yaml`).
 
 ---
 
-## 6. Post-Deployment Checklist
+## 4. Post-Deployment Checklist
 
-- [ ] Visit the deployed URL and confirm the app loads without the "OLLAMA_CLOUD_API_KEY is not set" warning
+- [ ] Visit the deployed URL and confirm the app loads without the "OLLAMA_CLOUD_API_KEY is not set" warning (check `<url>/api/v1/health/config`)
 - [ ] Upload a small test document and confirm it processes to `READY`
 - [ ] Ask a question in Chat and confirm you get a cited answer
 - [ ] Check Render's logs tab if anything fails — `src/utils/logger.py` writes structured logs to both console and `logs/docintel.log`
@@ -113,11 +114,13 @@ On Render specifically: choose **New → Web Service**, select **Docker** as the
 
 ---
 
-## 7. Common Issues
+## 5. Common Issues
 
 | Symptom | Cause | Fix |
 |---|---|---|
 | "OLLAMA_CLOUD_API_KEY is not configured" | Env var not set or misspelled | Check Render → Environment tab |
-| App works, then loses all documents after a while | No persistent disk | Follow section 3 |
+| App works, then loses all documents after a while | No persistent disk | Follow section 2 |
 | First request very slow | Embedding model downloading on cold start | Expected once per deploy; consider a paid instance type to avoid cold starts entirely |
-| `chromadb` install fails on build | Some Render base images lack build tools for native deps | Use the Docker deployment path instead, which pins a compatible base image |
+| `chromadb` install fails on build | Some Render base images lack build tools for native deps | Try a Starter (or higher) instance type, which uses a build image with more complete tooling |
+| Root URL returns a 404 | `frontend/dist/` wasn't built — check the build command actually ran `npm run build` and didn't fail silently | Check Render's build logs for `npm` errors; `api/static.py` logs "frontend/dist not found" on startup if the mount was skipped |
+| Page works, but a hard refresh on `/documents` (or any non-root path) 404s | `api/static.py`'s SPA fallback isn't registered — usually means `frontend/dist/index.html` is missing | Same fix as above: confirm the frontend build actually produced `dist/` |

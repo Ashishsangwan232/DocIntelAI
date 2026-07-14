@@ -1,16 +1,24 @@
 services:
+  # ---------------------------------------------------------------------
+  # Primary stack: FastAPI serves both the REST/SSE API and the built
+  # React frontend from one process/origin.
+  # ---------------------------------------------------------------------
   - type: web
-    name: docintel-ai
+    name: docintel-ai-web
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: streamlit run app.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true
+    buildCommand: >-
+      pip install -r requirements.txt &&
+      cd frontend && npm install && npm run build && cd ..
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: APP_ENV
         value: production
       - key: DEBUG
         value: "false"
       - key: LLM_MODEL
-        value: gpt-oss:120b
+        value: gpt-oss:120b-cloud
+      - key: OLLAMA_CLOUD_BASE_URL
+        value: https://ollama.com
       - key: OLLAMA_CLOUD_API_KEY
         sync: false # set manually in the Render dashboard — never committed

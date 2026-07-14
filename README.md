@@ -4,7 +4,7 @@
 
 DocIntel AI is a Retrieval-Augmented Generation (RAG) platform for chatting with, semantically searching, and summarizing your documents. Upload PDFs, Word documents, plain text, or Markdown files, and DocIntel AI turns them into a queryable knowledge base — every answer is grounded in your documents and comes with citations back to the exact page and excerpt it was drawn from.
 
-Built as a production-quality AI engineering capstone: clean layered architecture, dependency injection throughout, 340 automated tests (including real UI tests via Streamlit's `AppTest` framework, not just service-layer mocks), and a deliberate migration path from Streamlit to React + FastAPI without touching the RAG pipeline itself.
+Built as a production-quality AI engineering capstone: clean layered architecture, dependency injection throughout, and 300+ automated tests across both the Python backend and the API layer (service-layer mocks, FastAPI `TestClient` route tests). The React frontend (`frontend/`) is the sole UI, served together with the API by `api/main.py`, both built on the same service layer underneath.
 
 ---
 
@@ -44,9 +44,14 @@ Built as a production-quality AI engineering capstone: clean layered architectur
 
 ```
                          ┌─────────────────────┐
-                         │     Streamlit UI      │
+                         │      React UI          │
                          │  (chat / search /      │
                          │   upload / analytics)  │
+                         └──────────┬────────────┘
+                                    │
+                         ┌──────────▼────────────┐
+                         │      FastAPI            │
+                         │  (routers / schemas)    │
                          └──────────┬────────────┘
                                     │
                          ┌──────────▼────────────┐
@@ -83,10 +88,10 @@ Built as a production-quality AI engineering capstone: clean layered architectur
 ```
 
 **Design principles:**
-- **UI never touches the database or business logic directly** — every page (`src/ui/*.py`) calls a service, nothing else. This is what makes a future Streamlit → React/FastAPI migration a matter of wrapping the same service methods in HTTP routes.
-- **Dependency injection everywhere** — every service accepts its collaborators (DB, embedding model, LLM, vector store) as constructor arguments with sensible defaults. This is what makes 340 tests possible without a single real network call: fakes are injected at exactly this seam.
+- **UI never touches the database or business logic directly** — the React frontend (`frontend/`) only ever calls the FastAPI routes in `api/routers/`, which call a service, nothing else.
+- **Dependency injection everywhere** — every service accepts its collaborators (DB, embedding model, LLM, vector store) as constructor arguments with sensible defaults. This is what makes hundreds of tests possible without a single real network call: fakes are injected at exactly this seam.
 - **Repository pattern for persistence** — `SQLiteManager` is the only module that writes raw SQL. `ChromaManager` is the only module that imports `chromadb` directly.
-- **Every exception path lands as a clean `st.error`**, never a raw traceback — audited explicitly in Phase 13, with tests proving it.
+- **Every exception path lands as a clean error message, never a raw traceback** — a mapped HTTP status + JSON envelope, built from the `DocIntelError` hierarchy.
 
 ### RAG Pipeline Flow
 
@@ -106,19 +111,28 @@ If retrieval returns nothing above the similarity threshold, the LLM call is **s
 
 ```
 DocIntelAI/
-├── app.py                      # Streamlit entrypoint — routing + cached service wiring
 ├── config.py                   # Centralized settings (reads .env)
 ├── requirements.txt
-├── render.yaml                  # Render Blueprint (infrastructure as code)
+├── render.yaml                  # Render Blueprint — FastAPI + React
 ├── .env.example
 │
-├── .streamlit/
-│   └── config.toml              # Native Streamlit dark theme
-├── assets/
-│   └── styles.css                # Glassmorphism theme, animations, signature match-dial component
-├── docker/
-│   ├── Dockerfile
-│   └── .dockerignore
+├── api/                          # FastAPI backend
+│   ├── main.py                    # App factory: CORS, error handlers, router + static registration
+│   ├── errors.py                   # DocIntelError -> HTTP status mapping
+│   ├── dependencies.py              # DI providers for service singletons
+│   ├── static.py                     # Serves frontend/dist/ with SPA fallback in production
+│   ├── schemas/                       # Pydantic request/response models, one file per resource
+│   └── routers/                        # documents, chat, search, summary, analytics, settings, export, health
+│
+├── frontend/                     # Vite + vanilla JS + vanilla CSS frontend
+│   ├── src/
+│   │   ├── main.js  app.js  router.js
+│   │   ├── api/                       # client.js (fetch/SSE wrapper), resources.js (per-endpoint calls)
+│   │   ├── components/                 # sidebar, modal, toast, documentScopeSelect
+│   │   ├── pages/                       # chat, search, documents, analytics
+│   │   └── styles/                       # tokens/base/components
+│   └── vite.config.js                # Dev-server proxy to the FastAPI backend, no CORS needed locally
+│
 ├── docs/
 │   └── DEPLOYMENT.md             # Full Render deployment guide
 ├── uploads/                       # Uploaded files (gitignored)
@@ -126,12 +140,12 @@ DocIntelAI/
 ├── vectorstore/                   # ChromaDB persistence (gitignored)
 ├── logs/                          # Rotating log files (gitignored)
 │
-├── tests/                          # 340 tests, mirrors src/ structure
-│   ├── conftest.py                  # Shared fakes (FakeEmbeddingModel, FakeHTTPSession, ...)
+├── tests/                          # 300+ tests, mirrors src/ and api/ structure
+│   ├── conftest.py                  # Shared fakes (FakeEmbeddingModel, FakeOllamaChatClient, ...)
 │   ├── test_security.py             # Path traversal, XSS, secret-leakage regression tests
 │   ├── loaders/  preprocessing/  embeddings/  vectorstore/
 │   ├── rag/  llm/  database/  services/
-│   └── ui/                           # Real Streamlit AppTest-driven UI tests + harnesses
+│   └── api/                           # FastAPI TestClient route tests, one file per resource
 │
 └── src/
     ├── loaders/                     # PDF (PyMuPDF), DOCX (python-docx), TXT/MD
@@ -154,14 +168,11 @@ DocIntelAI/
     │
     ├── llm/
     │   ├── base.py                      # Abstract BaseLLM interface
-    │   └── ollama_cloud.py               # Ollama Cloud implementation (streaming + non-streaming)
+    │   └── ollama_cloud.py               # Ollama Cloud implementation via the official SDK (streaming + non-streaming)
     │
     ├── database/
     │   ├── models.py                     # Typed dataclasses (Document, Chunk, ChatMessage, ...)
     │   └── sqlite_manager.py              # Repository pattern, all SQL lives here
-    │
-    ├── ui/
-    │   ├── chat.py  search.py  upload.py  analytics.py  theme.py
     │
     ├── utils/
     │   ├── helpers.py  logger.py  exceptions.py
@@ -178,16 +189,17 @@ DocIntelAI/
 
 | Layer | Technology |
 |---|---|
-| Frontend | Streamlit |
+| Frontend | Vite + vanilla JavaScript + vanilla CSS (`frontend/`) |
+| API | FastAPI, serving both REST/SSE routes and the built frontend from one process (`api/`) |
 | AI Framework | LangChain (text splitting) |
-| LLM | Ollama Cloud API — `gpt-oss:120b` |
+| LLM | Ollama Cloud API (via the official `ollama` Python SDK) — `gpt-oss:120b-cloud` |
 | Embeddings | Sentence-Transformers — `BAAI/bge-base-en-v1.5` |
 | Vector Database | ChromaDB |
 | Metadata Database | SQLite |
 | Document Parsing | PyMuPDF, python-docx |
 | PDF Export | ReportLab |
-| Testing | pytest, Streamlit `AppTest` |
-| Deployment | Render (native or Docker) |
+| Testing | pytest, FastAPI `TestClient` |
+| Deployment | Render |
 
 ---
 
@@ -195,6 +207,7 @@ DocIntelAI/
 
 ### Prerequisites
 - Python 3.12
+- Node.js + npm (for the frontend)
 - An [Ollama Cloud](https://ollama.com) API key
 
 ### Setup
@@ -208,18 +221,25 @@ cd DocIntelAI
 python3 -m venv venv
 source venv/bin/activate   # Windows: venv\Scripts\activate
 
-# Install dependencies
+# Install backend dependencies
 pip install -r requirements.txt
 
 # Configure environment variables
 cp .env.example .env
 # Edit .env and set OLLAMA_CLOUD_API_KEY
 
-# Run the app
-streamlit run app.py
+# Terminal 1 — run the API
+uvicorn api.main:app --reload --port 8000
+
+# Terminal 2 — run the frontend dev server
+cd frontend
+npm install
+npm run dev
 ```
 
-The app will be available at `http://localhost:8501`. On first use, the embedding model (`BAAI/bge-base-en-v1.5`, ~430MB) downloads automatically from Hugging Face — this happens once and is cached locally.
+Open the URL Vite prints (typically `http://localhost:5173`) — its dev server proxies `/api/*` to the FastAPI backend, so no CORS setup is needed locally. See `frontend/README.md` for more on the frontend's structure.
+
+On first document upload, the embedding model (`BAAI/bge-base-en-v1.5`, ~430MB) downloads automatically from Hugging Face — this happens once and is cached locally.
 
 ---
 
@@ -242,12 +262,12 @@ pip install -r requirements.txt
 pytest
 ```
 
-340 tests across every layer — loaders, cleaning/splitting, embeddings, vector store, retrieval, prompt building, LLM client (error paths: timeout, auth, malformed responses, streaming), all seven services, and real Streamlit UI behavior via `AppTest` (button clicks, dialogs, streaming, forms) — with zero real network calls (fakes injected at the embedding-model and HTTP-session boundaries) and zero real LLM API costs.
+300+ tests across every layer — loaders, cleaning/splitting, embeddings, vector store, retrieval, prompt building, LLM client (error paths: timeout, auth, malformed responses, streaming), all seven services, and the FastAPI layer (every route, the `DocIntelError` → HTTP status mapping, SSE streaming, static-frontend serving) — with zero real network calls (fakes injected at the embedding-model, LLM-client, and service-dependency boundaries) and zero real LLM API costs.
 
 ```bash
 # Run a specific layer
 pytest tests/services/ -v
-pytest tests/ui/ -v
+pytest tests/api/ -v
 pytest tests/test_security.py -v
 ```
 
@@ -255,9 +275,9 @@ pytest tests/test_security.py -v
 
 ## Deployment
 
-Quick version: push to GitHub, create a Render Web Service, set `OLLAMA_CLOUD_API_KEY`, deploy. Full step-by-step instructions — including the persistent-disk setup needed for uploaded documents and chat history to survive restarts, plus a Docker alternative — are in **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
+The stack is **FastAPI + React** (`api/` + `frontend/`, one process serving both) — push to GitHub, create a Render Web Service with the build/start commands from `docs/DEPLOYMENT.md`, set `OLLAMA_CLOUD_API_KEY`, deploy. Full step-by-step instructions, including the persistent-disk setup needed for uploaded documents and chat history to survive restarts, are in **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
 
-A `render.yaml` Blueprint is included for one-click infrastructure-as-code deployment.
+A `render.yaml` Blueprint is included, ready to deploy as-is.
 
 ---
 
@@ -276,15 +296,13 @@ A `render.yaml` Blueprint is included for one-click infrastructure-as-code deplo
 
 ## Future Roadmap
 
-Designed so each of these can be added without touching the core RAG pipeline:
+The React frontend (`frontend/`) is the UI, served together with the API by `api/main.py`. From here, designed so each of these can be added without touching the core RAG pipeline:
 
-- **React + FastAPI** — wrap the existing service layer in HTTP routes; `DocumentService`, `ChatService`, etc. don't know they're currently called from Streamlit
 - **PostgreSQL** — swap `SQLiteManager` for a `PostgresManager` implementing the same method signatures
 - **Redis** — cache embedding lookups and session state for multi-instance deployments
 - **Authentication** — multi-user support with per-user document collections (the `Collection` model and schema already exist, just unused by the UI)
 - **Cloud Storage** — swap local `uploads/` for S3/GCS behind the same `DocumentService` interface
 - **Persisted summaries** — a `summaries` table so AI summaries survive across sessions instead of being regenerated
-- **Sidebar navigation** — replace the current tab-based navigation with a proper `sidebar.py` as the app grows
 
 ---
 

@@ -1,0 +1,918 @@
+/* ==========================================================================
+   components.css — reusable primitives every page (F-J) builds on
+   ========================================================================== */
+
+/* --------------------------------------------------------------------
+   Glass card — the "index card on a dark desk" from the Streamlit
+   theme's stVerticalBlockBorderWrapper/stMetric rule.
+   -------------------------------------------------------------------- */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-5);
+  transition: border-color var(--transition-smooth);
+}
+
+.metric {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 14px 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.metric-label {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-1);
+}
+
+.metric-value {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------
+   Buttons
+   -------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 9px 16px;
+  cursor: pointer;
+  transition:
+    transform var(--transition-fast),
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--accent-ink);
+  background: var(--accent-ink-dim);
+  transform: translateY(-1px);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent-ink);
+  border-color: var(--accent-ink);
+  color: #06181a;
+  font-weight: 600;
+}
+
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+  background: var(--accent-ink);
+}
+
+.btn-danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--danger-dim);
+}
+
+.btn-icon {
+  padding: 8px;
+  width: 34px;
+  height: 34px;
+}
+
+/* --------------------------------------------------------------------
+   Inputs — text, textarea, select
+   -------------------------------------------------------------------- */
+.input,
+.textarea,
+.select {
+  width: 100%;
+  border-radius: var(--radius-control);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  padding: 10px 12px;
+  font-size: 0.92rem;
+  transition: border-color var(--transition-fast);
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  border-color: var(--accent-ink);
+  outline: none;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.field-label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Range slider — reused by the Settings page (temperature, top-K, etc.) */
+input[type="range"] {
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--border-subtle);
+}
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-ink);
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent-ink);
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------------
+   Alerts / status banners
+   -------------------------------------------------------------------- */
+.alert {
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  backdrop-filter: blur(8px);
+  padding: var(--space-3) var(--space-4);
+  font-size: 0.9rem;
+}
+
+.alert-error {
+  border-color: var(--danger);
+  background: var(--danger-dim);
+  color: var(--text-primary);
+}
+
+.alert-info {
+  border-color: var(--accent-ink);
+  background: var(--accent-ink-dim);
+}
+
+/* --------------------------------------------------------------------
+   Signature element: the match-dial
+   Conic-gradient ring showing a similarity score at a glance, paired
+   with a text label (never color-only). Same markup contract as the
+   Streamlit version's render_match_dial(): a `.match-dial` element
+   with `--pct` set 0-100, followed by a numeric label.
+   -------------------------------------------------------------------- */
+.match-dial-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.match-dial {
+  --pct: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: conic-gradient(var(--accent-ink) calc(var(--pct) * 1%), var(--border-subtle) 0);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-smooth);
+}
+
+.match-dial::after {
+  content: "";
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bg-primary);
+}
+
+/* --------------------------------------------------------------------
+   Chat bubbles — asymmetric, assistant gets the ink highlight rule
+   -------------------------------------------------------------------- */
+.chat-message {
+  border-radius: var(--radius-card);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-3);
+  animation: fade-in-up var(--transition-smooth);
+  max-width: 80%;
+}
+
+.chat-message--user {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  margin-left: auto;
+}
+
+.chat-message--assistant {
+  border-left: 2px solid var(--accent-ink);
+  padding-left: var(--space-4);
+  max-width: 100%;
+}
+
+/* --------------------------------------------------------------------
+   Sidebar navigation
+   -------------------------------------------------------------------- */
+.sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.02);
+  border-right: 1px solid var(--border-subtle);
+  padding: var(--space-5) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sidebar-brand-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+  padding: 0 var(--space-3);
+}
+
+.sidebar-brand-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 2px 0 var(--space-4) 0;
+  padding: 0 var(--space-3);
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--radius-control);
+  border: 1px solid transparent;
+  background: none;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.nav-link:hover {
+  background: var(--bg-surface-hover);
+}
+
+.nav-link.active {
+  background: var(--accent-ink-dim);
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
+}
+
+/* --------------------------------------------------------------------
+   Layout shell
+   -------------------------------------------------------------------- */
+.page-outlet {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-6);
+  overflow-y: auto;
+  height: 100vh;
+}
+
+.page-content {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: var(--space-5);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.grid-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-4);
+}
+
+/* --------------------------------------------------------------------
+   Empty / loading states
+   -------------------------------------------------------------------- */
+.empty-state {
+  text-align: center;
+  padding: var(--space-6);
+  color: var(--text-muted);
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-subtle);
+  border-top-color: var(--accent-ink);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --------------------------------------------------------------------
+   Modal — used by Documents (preview/delete/summary) and later pages.
+   See components/modal.js for the lifecycle this pairs with.
+   -------------------------------------------------------------------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  z-index: 1000;
+  animation: fade-in-up var(--transition-fast);
+}
+
+.modal {
+  background: #101828;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.modal-large {
+  max-width: 720px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.modal-header h3 {
+  margin: 0;
+}
+
+.modal-close-x {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 var(--space-1);
+}
+
+.modal-close-x:hover {
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: var(--space-5);
+}
+
+.modal-footer {
+  margin-top: var(--space-4);
+}
+
+.preview-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
+  padding: var(--space-3);
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------
+   Upload dropzone
+   -------------------------------------------------------------------- */
+.dropzone {
+  border: 2px dashed var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: var(--space-6);
+  text-align: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.dropzone:hover,
+.dropzone:focus-visible {
+  border-color: var(--accent-ink);
+  background: var(--accent-ink-dim);
+}
+
+.dropzone--active {
+  border-color: var(--accent-ink);
+  background: var(--accent-ink-dim);
+}
+
+.dropzone-icon {
+  font-size: 1.8rem;
+  margin-bottom: var(--space-2);
+}
+
+/* --------------------------------------------------------------------
+   Document library rows
+   -------------------------------------------------------------------- */
+.doc-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.doc-row,
+.search-hit {
+  transition:
+    border-color var(--transition-smooth),
+    transform var(--transition-smooth),
+    box-shadow var(--transition-smooth);
+}
+
+.doc-row:hover,
+.search-hit:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.doc-row-info {
+  flex: 3;
+  min-width: 0;
+}
+
+.doc-row-name {
+  margin: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-row-date {
+  margin: 2px 0 0 0;
+  font-size: 0.82rem;
+}
+
+.doc-row-meta {
+  flex: 2;
+  font-size: 0.85rem;
+}
+
+.doc-row-meta p {
+  margin: 0 0 2px 0;
+}
+
+.doc-row-actions {
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .doc-row {
+    flex-wrap: wrap;
+  }
+  .doc-row-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* --------------------------------------------------------------------
+   Chat page — toolbar, citations, message actions, input bar
+   -------------------------------------------------------------------- */
+.chat-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+.chat-toolbar .doc-scope-select {
+  flex: 1;
+  min-width: 200px;
+}
+
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+}
+
+.citations-panel {
+  margin-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-2);
+}
+
+.citations-panel summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  user-select: none;
+}
+
+.citation-item {
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.citation-item:first-of-type {
+  border-top: none;
+}
+
+.citation-title {
+  font-size: 0.88rem;
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.citation-excerpt {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.message-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.message-actions .btn {
+  padding: 4px 10px;
+  font-size: 0.85rem;
+}
+
+.typing-cursor::after {
+  content: "▍";
+  animation: blink 1s step-start infinite;
+  color: var(--accent-ink);
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.chat-input-bar {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg-primary);
+  padding-top: var(--space-3);
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-end;
+}
+
+.chat-input-bar textarea {
+  flex: 1;
+  max-height: 160px;
+}
+
+.export-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+mark {
+  background: var(--accent-ink-dim);
+  color: var(--accent-ink);
+  padding: 0 2px;
+  border-radius: 3px;
+}
+
+/* --------------------------------------------------------------------
+   Search results
+   -------------------------------------------------------------------- */
+.search-hit {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+.search-hit-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-hit-title {
+  margin: 0 0 var(--space-2) 0;
+}
+
+.search-hit-snippet {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.search-hit-score {
+  flex-shrink: 0;
+  text-align: center;
+}
+
+/* --------------------------------------------------------------------
+   Sub-page tabs (Analytics / Settings) — plain buttons, not full
+   routes, since both views share one page and one data-fetch cycle.
+   -------------------------------------------------------------------- */
+.subtabs {
+  display: flex;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: var(--space-5);
+}
+
+.subtab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: var(--space-2) var(--space-3) var(--space-3);
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.subtab-btn:hover {
+  color: var(--text-primary);
+}
+
+.subtab-btn.active {
+  color: var(--accent-ink);
+  border-bottom-color: var(--accent-ink);
+}
+
+/* --------------------------------------------------------------------
+   Simple bar chart (upload activity) — plain SVG, no charting library
+   -------------------------------------------------------------------- */
+.bar-chart-bar {
+  fill: var(--accent-ink);
+  opacity: 0.85;
+  transition: opacity var(--transition-fast);
+}
+
+.bar-chart-bar:hover {
+  opacity: 1;
+}
+
+.bar-chart-label,
+.bar-chart-value {
+  fill: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+/* --------------------------------------------------------------------
+   Settings sliders
+   -------------------------------------------------------------------- */
+.slider-field {
+  margin-bottom: var(--space-4);
+}
+
+.slider-field-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  font-size: 0.88rem;
+}
+
+.slider-field-value {
+  font-family: var(--font-mono);
+  color: var(--accent-ink);
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 var(--space-5);
+}
+
+@media (max-width: 640px) {
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --------------------------------------------------------------------
+   Toasts — see components/toast.js
+   -------------------------------------------------------------------- */
+.toast-region {
+  position: fixed;
+  bottom: var(--space-5);
+  right: var(--space-5);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: min(360px, calc(100vw - var(--space-5) * 2));
+}
+
+.toast {
+  background: #101828;
+  border: 1px solid var(--border-strong);
+  border-left: 3px solid var(--accent-ink);
+  border-radius: var(--radius-control);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-3) var(--space-4);
+  font-size: 0.88rem;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity var(--transition-smooth),
+    transform var(--transition-smooth);
+}
+
+.toast-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast-error {
+  border-left-color: var(--danger);
+}
+
+/* --------------------------------------------------------------------
+   Skip-to-content link — visually hidden until focused, so keyboard
+   users can bypass the sidebar without a screen-reader-only trap.
+   -------------------------------------------------------------------- */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--space-3);
+  background: var(--accent-ink);
+  color: #06181a;
+  padding: 10px 16px;
+  border-radius: var(--radius-control);
+  font-weight: 600;
+  z-index: 3000;
+  transition: top var(--transition-fast);
+}
+
+.skip-link:focus {
+  top: var(--space-3);
+}
+
+/* --------------------------------------------------------------------
+   Page transition — a quick fade on route change. Applied via a class
+   toggled in router.js (not a permanent animation on .page-outlet
+   itself, since that element persists across navigations and a CSS
+   animation only plays once on an element that's never removed/
+   re-inserted). Skipped entirely under prefers-reduced-motion via the
+   transition-duration override in tokens.css.
+   -------------------------------------------------------------------- */
+.page-transition {
+  animation: fade-in-up var(--transition-smooth);
+}
+
+/* --------------------------------------------------------------------
+   Responsive adjustments
+   -------------------------------------------------------------------- */
+@media (max-width: 860px) {
+  #app {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+    padding: var(--space-3);
+  }
+  .sidebar-brand-title,
+  .sidebar-brand-subtitle {
+    display: none;
+  }
+  .nav-link {
+    white-space: nowrap;
+  }
+  .page-outlet {
+    height: auto;
+    padding: var(--space-4);
+  }
+}
+
+@media (max-width: 640px) {
+  .metric {
+    padding: 10px 12px;
+  }
+  .match-dial {
+    width: 22px;
+    height: 22px;
+  }
+  .match-dial::after {
+    width: 14px;
+    height: 14px;
+  }
+  .chat-message {
+    max-width: 100%;
+  }
+  .dropzone {
+    padding: var(--space-4);
+  }
+  .dropzone-icon {
+    font-size: 1.4rem;
+  }
+  .chat-input-bar {
+    flex-wrap: wrap;
+  }
+  .chat-input-bar textarea {
+    flex-basis: 100%;
+  }
+  .chat-input-bar button {
+    flex: 1;
+  }
+  .toast-region {
+    left: var(--space-3);
+    right: var(--space-3);
+    max-width: none;
+  }
+  .search-hit {
+    flex-direction: column;
+  }
+  .search-hit-score {
+    align-self: flex-start;
+  }
+}

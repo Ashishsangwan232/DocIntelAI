@@ -53,6 +53,23 @@ class ChatService:
         session = ChatSession(title=title, collection_id=collection_id)
         return self.db.create_chat_session(session)
 
+    def get_session(self, session_id: str) -> ChatSession:
+        """
+        Fetch a single chat session by ID.
+
+        Streamlit's chat page never needed this — it only ever acts on
+        a session ID it created and holds in `st.session_state`. The
+        API layer accepts a session ID from an arbitrary request, so it
+        uses this to turn an invalid ID into a clean 404 before calling
+        `send_message`/`regenerate_last_response`/etc., rather than
+        letting a bad ID surface as a raw FOREIGN KEY constraint error
+        from the messages INSERT.
+
+        Raises:
+            RecordNotFoundError: If no session with this ID exists.
+        """
+        return self.db.get_chat_session(session_id)
+
     def list_sessions(self) -> list[ChatSession]:
         """Return all chat sessions, most recently created first."""
         return self.db.list_chat_sessions()

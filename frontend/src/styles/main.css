@@ -1,0 +1,11 @@
+/* ==========================================================================
+   main.css — single entry point, imported once from src/main.js.
+   Order matters: tokens define variables, base resets/applies them,
+   components layer reusable classes on top. Page-specific styles
+   (Phases F-J) get their own file per page, imported from that page's
+   module rather than added here.
+   ========================================================================== */
+
+@import "./tokens.css";
+@import "./base.css";
+@import "./components.css";

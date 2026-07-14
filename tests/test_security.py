@@ -144,11 +144,11 @@ class TestSecretsNeverLeak:
     def test_api_key_not_in_exception_message_on_connection_failure(self) -> None:
         secret = "sk-supersecret-do-not-leak-1234567890"
 
-        class FailingSession:
-            def post(self, url, *, headers, json, timeout, stream=False):
-                raise ConnectionError(f"Failed to connect to {url}")
+        class FailingClient:
+            def chat(self, *, model, messages, options, stream=False):
+                raise ConnectionError("Failed to connect to Ollama Cloud")
 
-        llm = OllamaCloudLLM(api_key=secret, session=FailingSession())
+        llm = OllamaCloudLLM(api_key=secret, client=FailingClient())
         with pytest.raises(LLMResponseError) as exc_info:
             llm.generate("test prompt")
         assert secret not in str(exc_info.value)
@@ -156,11 +156,11 @@ class TestSecretsNeverLeak:
     def test_api_key_not_in_log_output_on_failure(self, caplog: pytest.LogCaptureFixture) -> None:
         secret = "sk-supersecret-do-not-leak-1234567890"
 
-        class FailingSession:
-            def post(self, url, *, headers, json, timeout, stream=False):
+        class FailingClient:
+            def chat(self, *, model, messages, options, stream=False):
                 raise ConnectionError("network unreachable")
 
-        llm = OllamaCloudLLM(api_key=secret, session=FailingSession())
+        llm = OllamaCloudLLM(api_key=secret, client=FailingClient())
         with caplog.at_level(logging.DEBUG):
             with pytest.raises(LLMResponseError):
                 llm.generate("test prompt")
@@ -170,18 +170,14 @@ class TestSecretsNeverLeak:
     def test_api_key_not_in_exception_on_auth_rejection(self) -> None:
         secret = "sk-another-secret-value"
 
-        class FakeResponse:
+        class FakeResponseError(Exception):
             status_code = 401
-            text = "Unauthorized"
 
-            def json(self):
-                return {}
+        class FakeClient:
+            def chat(self, *, model, messages, options, stream=False):
+                raise FakeResponseError("Unauthorized")
 
-        class FakeSession:
-            def post(self, url, *, headers, json, timeout, stream=False):
-                return FakeResponse()
-
-        llm = OllamaCloudLLM(api_key=secret, session=FakeSession())
+        llm = OllamaCloudLLM(api_key=secret, client=FakeClient())
         with pytest.raises(Exception) as exc_info:
             llm.generate("test")
         assert secret not in str(exc_info.value)

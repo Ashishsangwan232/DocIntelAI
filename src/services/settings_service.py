@@ -30,7 +30,7 @@ logger = get_logger(__name__)
 # preferences from other features).
 _KEY_PREFIX = "runtime_pref."
 
-_AVAILABLE_MODELS = ["gpt-oss:120b"]
+_AVAILABLE_MODELS = ["gpt-oss:120b-cloud"]
 
 
 @dataclass
@@ -59,7 +59,7 @@ class RuntimeSettingsService:
             top_k=self._get_int("top_k", app_settings.rag.top_k),
             temperature=self._get_float("temperature", app_settings.llm.temperature),
             max_tokens=self._get_int("max_tokens", app_settings.llm.max_tokens),
-            model=self.db.get_setting(f"{_KEY_PREFIX}model", app_settings.llm.model_name),
+            model=self._get_str("model", app_settings.llm.model_name),
         )
 
     def update_preferences(
@@ -137,6 +137,18 @@ class RuntimeSettingsService:
             return float(raw)
         except ValueError:
             return default
+
+    def _get_str(self, key: str, default: str) -> str:
+        """
+        Same "empty string sentinel means unset" contract as
+        `_get_int`/`_get_float` — needed because `reset_to_defaults()`
+        writes an empty string rather than deleting the row (see its
+        docstring), and `SQLiteManager.get_setting()`'s own `default`
+        param only applies when the row doesn't exist at all, not when
+        it exists with an empty value.
+        """
+        raw = self.db.get_setting(f"{_KEY_PREFIX}{key}")
+        return raw if raw else default
 
     def _validate(
         self,
