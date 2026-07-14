@@ -20,6 +20,8 @@ services:
         value: "false"
       - key: LLM_MODEL
         value: gpt-oss:120b-cloud
+      - key: EMBEDDING_MODEL
+        value: BAAI/bge-small-en-v1.5
       - key: OLLAMA_CLOUD_BASE_URL
         value: https://ollama.com
       - key: OLLAMA_CLOUD_API_KEY
