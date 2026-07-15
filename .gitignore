@@ -16,14 +16,14 @@ env/
 .ruff_cache/
 
 # --- Runtime data (never committed, recreated by config.py at startup) ---
-uploads/*
-!uploads/.gitkeep
-database/*
-!database/.gitkeep
-vectorstore/*
-!vectorstore/.gitkeep
-logs/*
-!logs/.gitkeep
+# uploads/*
+# !uploads/.gitkeep
+# database/*
+# !database/.gitkeep
+# vectorstore/*
+# !vectorstore/.gitkeep
+# logs/*
+# !logs/.gitkeep
 
 # --- OS / editor ---
 .DS_Store

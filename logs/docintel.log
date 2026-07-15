@@ -1,0 +1,58 @@
+2026-07-14 13:08:05 | INFO     | api.static | static.py:42 | frontend/dist not found — skipping static frontend mount. Run `npm run build` in frontend/, or use `npm run dev` separately for local development.
+2026-07-14 13:08:56 | INFO     | src.database.sqlite_manager | sqlite_manager.py:150 | SQLite schema initialized at H:\AI launchpad\aa\database\docintel.db
+2026-07-14 13:08:56 | INFO     | src.database.sqlite_manager | sqlite_manager.py:150 | SQLite schema initialized at H:\AI launchpad\aa\database\docintel.db
+2026-07-14 13:09:03 | INFO     | api.errors | errors.py:93 | GET /api/v1/chat/sessions/140ba41e-5597-4d65-84bd-0b95b43c650e/messages -> 404: Chat session 140ba41e-5597-4d65-84bd-0b95b43c650e not found
+2026-07-14 13:09:21 | INFO     | src.database.sqlite_manager | sqlite_manager.py:210 | Created document 'Smart_City_Management_System_Report.docx' (2dca8793-a39e-491a-b49d-f9b58845076a)
+2026-07-14 13:09:21 | INFO     | src.loaders.docx_loader | docx_loader.py:64 | Loaded DOCX '2dca8793-a39e-491a-b49d-f9b58845076a_Smart_City_Management_System_Report.docx' with 113 paragraphs/rows
+2026-07-14 13:09:21 | INFO     | src.preprocessing.splitter | splitter.py:94 | Split document 2dca8793-a39e-491a-b49d-f9b58845076a into 21 chunks (size=800, overlap=120)
+2026-07-14 13:09:21 | INFO     | src.database.sqlite_manager | sqlite_manager.py:295 | Inserted 21 chunks for document 2dca8793-a39e-491a-b49d-f9b58845076a
+2026-07-14 13:09:58 | INFO     | src.embeddings.embedding_service | embedding_service.py:92 | Loading embedding model 'BAAI/bge-base-en-v1.5' on device 'cpu'...
+2026-07-14 13:10:03 | INFO     | src.embeddings.embedding_service | embedding_service.py:97 | Embedding model 'BAAI/bge-base-en-v1.5' loaded successfully
+2026-07-14 13:10:06 | INFO     | src.embeddings.embedding_service | embedding_service.py:149 | Embedded 21 texts (dim=768, batch_size=32)
+2026-07-14 13:10:07 | INFO     | src.vectorstore.chroma_manager | chroma_manager.py:132 | Added 21 vectors to ChromaDB for document 2dca8793-a39e-491a-b49d-f9b58845076a
+2026-07-14 13:10:07 | INFO     | src.database.sqlite_manager | sqlite_manager.py:263 | Updated document 2dca8793-a39e-491a-b49d-f9b58845076a status -> ready
+2026-07-14 13:10:07 | INFO     | src.services.document_service | document_service.py:202 | Processed 'Smart_City_Management_System_Report.docx' -> 21 chunks embedded and stored (18.1 KB)
+2026-07-14 13:10:12 | INFO     | src.services.summary_service | summary_service.py:146 | 'Smart_City_Management_System_Report.docx' exceeds context budget — summarizing in 2 groups
+2026-07-14 13:10:26 | INFO     | src.llm.ollama_cloud | ollama_cloud.py:128 | LLM generate() completed in 13702ms (model=gpt-oss:120b-cloud)
+2026-07-14 13:10:35 | INFO     | src.llm.ollama_cloud | ollama_cloud.py:128 | LLM generate() completed in 9843ms (model=gpt-oss:120b-cloud)
+2026-07-14 13:10:51 | INFO     | src.llm.ollama_cloud | ollama_cloud.py:128 | LLM generate() completed in 15750ms (model=gpt-oss:120b-cloud)
+2026-07-14 13:10:51 | INFO     | src.services.summary_service | summary_service.py:135 | Generated summary for 'Smart_City_Management_System_Report.docx' (21 chunks, map_reduce=True)
+2026-07-14 13:11:45 | INFO     | src.embeddings.embedding_service | embedding_service.py:149 | Embedded 1 texts (dim=768, batch_size=32)
+2026-07-14 13:11:45 | INFO     | src.rag.retriever | retriever.py:106 | Retrieved 5/5 chunks above threshold 0.20 for query: 'tell me about my project'
+2026-07-14 13:12:00 | INFO     | src.services.chat_service | chat_service.py:210 | Streamed chat message answered in session fe24c554-c563-40ab-8995-00de92832ff8 (5 citations, 14718ms)
+2026-07-14 14:44:45 | INFO     | api.static | static.py:42 | frontend/dist not found — skipping static frontend mount. Run `npm run build` in frontend/, or use `npm run dev` separately for local development.
+2026-07-14 14:45:09 | INFO     | src.database.sqlite_manager | sqlite_manager.py:150 | SQLite schema initialized at H:\AI launchpad\DocIntelAI\database\docintel.db
+2026-07-14 14:45:09 | INFO     | src.database.sqlite_manager | sqlite_manager.py:150 | SQLite schema initialized at H:\AI launchpad\DocIntelAI\database\docintel.db
+2026-07-14 15:10:38 | INFO     | api.static | static.py:42 | frontend/dist not found — skipping static frontend mount. Run `npm run build` in frontend/, or use `npm run dev` separately for local development.
+2026-07-14 15:10:42 | INFO     | src.database.sqlite_manager | sqlite_manager.py:150 | SQLite schema initialized at H:\AI launchpad\DocIntelAI\database\docintel.db
+2026-07-14 15:10:42 | INFO     | src.database.sqlite_manager | sqlite_manager.py:150 | SQLite schema initialized at H:\AI launchpad\DocIntelAI\database\docintel.db
+2026-07-14 15:18:30 | INFO     | src.database.sqlite_manager | sqlite_manager.py:437 | Cleared all messages for chat session fe24c554-c563-40ab-8995-00de92832ff8
+2026-07-14 15:23:23 | INFO     | src.embeddings.embedding_service | embedding_service.py:92 | Loading embedding model 'BAAI/bge-base-en-v1.5' on device 'cpu'...
+2026-07-14 15:23:30 | INFO     | src.embeddings.embedding_service | embedding_service.py:97 | Embedding model 'BAAI/bge-base-en-v1.5' loaded successfully
+2026-07-14 15:23:30 | INFO     | src.embeddings.embedding_service | embedding_service.py:149 | Embedded 1 texts (dim=768, batch_size=32)
+2026-07-14 15:23:30 | INFO     | src.rag.retriever | retriever.py:106 | Retrieved 5/5 chunks above threshold 0.20 for query: 'what is my name'
+2026-07-14 15:23:35 | INFO     | src.services.chat_service | chat_service.py:210 | Streamed chat message answered in session fe24c554-c563-40ab-8995-00de92832ff8 (5 citations, 4625ms)
+2026-07-14 15:24:25 | INFO     | src.embeddings.embedding_service | embedding_service.py:149 | Embedded 1 texts (dim=768, batch_size=32)
+2026-07-14 15:24:25 | INFO     | src.rag.retriever | retriever.py:106 | Retrieved 5/5 chunks above threshold 0.20 for query: 'name'
+2026-07-14 15:24:25 | INFO     | src.services.search_service | search_service.py:106 | Semantic search for 'name' returned 5 hits
+2026-07-14 15:26:24 | INFO     | src.embeddings.embedding_service | embedding_service.py:149 | Embedded 1 texts (dim=768, batch_size=32)
+2026-07-14 15:26:24 | INFO     | src.rag.retriever | retriever.py:106 | Retrieved 5/5 chunks above threshold 0.20 for query: 'future goals my project'
+2026-07-14 15:26:33 | INFO     | src.services.chat_service | chat_service.py:210 | Streamed chat message answered in session fe24c554-c563-40ab-8995-00de92832ff8 (5 citations, 9046ms)
+2026-07-14 15:27:56 | INFO     | src.database.sqlite_manager | sqlite_manager.py:210 | Created document 'Annexure-I_-_Undertaking_for_Continuation_of_Benefits_of_LPURISE_Scholarship_Scheme_2026.pdf' (058eb077-a876-4791-9eb4-29625685d548)
+2026-07-14 15:27:56 | INFO     | src.loaders.pdf_loader | pdf_loader.py:52 | Loaded PDF '058eb077-a876-4791-9eb4-29625685d548_Annexure-I_-_Undertaking_for_Continuation_of_Benefits_of_LPURISE_Scholarship_Scheme_2026.pdf' with 1 pages
+2026-07-14 15:27:56 | INFO     | src.preprocessing.splitter | splitter.py:94 | Split document 058eb077-a876-4791-9eb4-29625685d548 into 5 chunks (size=800, overlap=120)
+2026-07-14 15:27:56 | INFO     | src.database.sqlite_manager | sqlite_manager.py:295 | Inserted 5 chunks for document 058eb077-a876-4791-9eb4-29625685d548
+2026-07-14 15:28:04 | INFO     | src.embeddings.embedding_service | embedding_service.py:149 | Embedded 5 texts (dim=768, batch_size=32)
+2026-07-14 15:28:04 | INFO     | src.vectorstore.chroma_manager | chroma_manager.py:132 | Added 5 vectors to ChromaDB for document 058eb077-a876-4791-9eb4-29625685d548
+2026-07-14 15:28:04 | INFO     | src.database.sqlite_manager | sqlite_manager.py:263 | Updated document 058eb077-a876-4791-9eb4-29625685d548 status -> ready
+2026-07-14 15:28:04 | INFO     | src.services.document_service | document_service.py:202 | Processed 'Annexure-I_-_Undertaking_for_Continuation_of_Benefits_of_LPURISE_Scholarship_Scheme_2026.pdf' -> 5 chunks embedded and stored (159.8 KB)
+2026-07-14 15:29:22 | INFO     | src.embeddings.embedding_service | embedding_service.py:149 | Embedded 1 texts (dim=768, batch_size=32)
+2026-07-14 15:29:22 | INFO     | src.rag.retriever | retriever.py:106 | Retrieved 5/5 chunks above threshold 0.20 for query: 'tell me some that are more effective'
+2026-07-14 15:29:29 | INFO     | src.services.chat_service | chat_service.py:210 | Streamed chat message answered in session fe24c554-c563-40ab-8995-00de92832ff8 (5 citations, 6735ms)
+2026-07-14 15:30:04 | INFO     | src.embeddings.embedding_service | embedding_service.py:149 | Embedded 1 texts (dim=768, batch_size=32)
+2026-07-14 15:30:04 | INFO     | src.rag.retriever | retriever.py:106 | Retrieved 5/5 chunks above threshold 0.20 for query: 'describe this undertaking'
+2026-07-14 15:30:14 | INFO     | src.services.chat_service | chat_service.py:210 | Streamed chat message answered in session fe24c554-c563-40ab-8995-00de92832ff8 (5 citations, 10094ms)
+2026-07-15 09:00:19 | INFO     | api.static | static.py:42 | frontend/dist not found — skipping static frontend mount. Run `npm run build` in frontend/, or use `npm run dev` separately for local development.
+2026-07-15 09:01:08 | INFO     | src.database.sqlite_manager | sqlite_manager.py:150 | SQLite schema initialized at H:\AI launchpad\DocIntelAI\database\docintel.db
+2026-07-15 09:01:08 | INFO     | src.database.sqlite_manager | sqlite_manager.py:150 | SQLite schema initialized at H:\AI launchpad\DocIntelAI\database\docintel.db
+2026-07-15 09:01:21 | INFO     | src.database.sqlite_manager | sqlite_manager.py:437 | Cleared all messages for chat session fe24c554-c563-40ab-8995-00de92832ff8

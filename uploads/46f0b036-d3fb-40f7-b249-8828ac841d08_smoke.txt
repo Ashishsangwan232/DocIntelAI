@@ -1,0 +1,1 @@
+Hello DocIntel, this is a smoke test of the upload pipeline.
